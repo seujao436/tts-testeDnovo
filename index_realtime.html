@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistente de Voz IA - Real Time</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 24px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 700px;
+      width: 100%;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 0.5rem;
+      font-size: 2rem;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .status-connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-processing {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .avatar-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    .avatar {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 80px;
+      transition: all 0.3s ease;
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .avatar.listening {
+      animation: pulse 1.5s infinite;
+      box-shadow: 0 0 0 0 rgba(102, 126, 234, 1);
+    }
+
+    .avatar.speaking {
+      animation: speak 0.5s infinite alternate;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 20px rgba(102, 126, 234, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
+      }
+    }
+
+    @keyframes speak {
+      from { transform: scale(1); }
+      to { transform: scale(1.08); }
+    }
+
+    .controls {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+
+    button {
+      padding: 15px 30px;
+      font-size: 16px;
+      border: none;
+      border-radius: 50px;
+      background: #667eea;
+      color: white;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 600;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    button:hover:not(:disabled) {
+      background: #5568d3;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+    }
+
+    button:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    button.secondary {
+      background: #6c757d;
+    }
+
+    button.secondary:hover:not(:disabled) {
+      background: #5a6268;
+    }
+
+    .transcript-box {
+      background: #f8f9fa;
+      border-radius: 16px;
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .message {
+      margin-bottom: 1rem;
+      padding: 1rem;
+      border-radius: 12px;
+      animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message.user {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+    }
+
+    .message.ai {
+      background: #f3e5f5;
+      border-left: 4px solid #9c27b0;
+    }
+
+    .message-label {
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .message-text {
+      line-height: 1.6;
+      color: #333;
+    }
+
+    .message-time {
+      font-size: 0.75rem;
+      color: #666;
+      margin-top: 0.5rem;
+    }
+
+    .info-panel {
+      background: #e7f3ff;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+      border-left: 4px solid #2196f3;
+    }
+
+    .info-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #1976d2;
+    }
+
+    .info-item {
+      font-size: 0.9rem;
+      color: #555;
+      margin: 0.25rem 0;
+    }
+
+    .audio-visualizer {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      height: 60px;
+      margin: 1rem 0;
+    }
+
+    .bar {
+      width: 4px;
+      background: #667eea;
+      border-radius: 4px;
+      transition: height 0.1s ease;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🤖 Assistente de Voz IA</h1>
+    <div style="text-align: center;">
+      <span id="statusBadge" class="status-badge status-disconnected">⚫ Desconectado</span>
+    </div>
+
+    <div class="avatar-container">
+      <div class="avatar" id="avatar">🤖</div>
+    </div>
+
+    <div class="controls">
+      <button id="connectBtn">🔌 Conectar</button>
+      <button id="startBtn" disabled>🎤 Falar</button>
+      <button id="stopBtn" class="secondary" style="display:none;">⏹️ Parar</button>
+    </div>
+
+    <div class="audio-visualizer hidden" id="visualizer">
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+      <div class="bar"></div>
+    </div>
+
+    <div class="transcript-box" id="transcript">
+      <div class="message ai">
+        <div class="message-label">Sistema</div>
+        <div class="message-text">Clique em "Conectar" para iniciar...</div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <div class="info-title">ℹ️ Informações da Conexão</div>
+      <div class="info-item">🆔 ID do Cliente: <span id="clientId">-</span></div>
+      <div class="info-item">🔗 Status WebSocket: <span id="wsStatus">Desconectado</span></div>
+      <div class="info-item">⏱️ Última Atividade: <span id="lastActivity">-</span></div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let clientId = null;
+    let recognition = null;
+    let isListening = false;
+    let currentAudio = null;
+
+    const connectBtn = document.getElementById('connectBtn');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const avatar = document.getElementById('avatar');
+    const statusBadge = document.getElementById('statusBadge');
+    const transcript = document.getElementById('transcript');
+    const clientIdEl = document.getElementById('clientId');
+    const wsStatus = document.getElementById('wsStatus');
+    const lastActivity = document.getElementById('lastActivity');
+    const visualizer = document.getElementById('visualizer');
+
+    // Verificar suporte a Web Speech API
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = 'pt-BR';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+    } else {
+      addMessage('sistema', 'Seu navegador não suporta reconhecimento de voz', 'system');
+    }
+
+    // Conectar ao WebSocket
+    connectBtn.addEventListener('click', () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.close();
+        return;
+      }
+
+      connectToWebSocket();
+    });
+
+    function connectToWebSocket() {
+      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const wsUrl = `${protocol}//${window.location.host}`;
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('✅ WebSocket conectado');
+        updateStatus('connected');
+        wsStatus.textContent = 'Conectado';
+        connectBtn.textContent = '🔌 Desconectar';
+        connectBtn.style.background = '#dc3545';
+        startBtn.disabled = false;
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        updateLastActivity();
+
+        switch(data.type) {
+          case 'connected':
+            clientId = data.clientId;
+            clientIdEl.textContent = clientId;
+            addMessage('sistema', data.message, 'system');
+            break;
+
+          case 'chatResponse':
+            addMessage('assistente', data.text, 'ai');
+            generateSpeech(data.text);
+            break;
+
+          case 'audioProcessing':
+            if (data.status === 'generating') {
+              updateStatus('processing');
+              showVisualizer();
+            }
+            break;
+
+          case 'userActivity':
+            console.log(`📢 Atividade: ${data.activity}`);
+            break;
+
+          case 'error':
+            addMessage('erro', data.message, 'system');
+            updateStatus('connected');
+            break;
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('❌ WebSocket erro:', error);
+        addMessage('erro', 'Erro na conexão WebSocket', 'system');
+      };
+
+      ws.onclose = () => {
+        console.log('👋 WebSocket desconectado');
+        updateStatus('disconnected');
+        wsStatus.textContent = 'Desconectado';
+        connectBtn.textContent = '🔌 Conectar';
+        connectBtn.style.background = '#667eea';
+        startBtn.disabled = true;
+        clientId = null;
+        clientIdEl.textContent = '-';
+      };
+    }
+
+    // Iniciar reconhecimento de voz
+    startBtn.addEventListener('click', () => {
+      if (!recognition) return;
+
+      recognition.start();
+      isListening = true;
+      startBtn.style.display = 'none';
+      stopBtn.style.display = 'inline-block';
+      avatar.classList.add('listening');
+      updateStatus('processing');
+      showVisualizer();
+      addMessage('sistema', 'Ouvindo... Pode falar!', 'system');
+    });
+
+    // Parar reconhecimento
+    stopBtn.addEventListener('click', () => {
+      if (recognition) {
+        recognition.stop();
+      }
+      resetUIAfterSpeech();
+    });
+
+    // Processar resultado do reconhecimento
+    if (recognition) {
+      recognition.onresult = (event) => {
+        const speechResult = event.results[0][0].transcript;
+        addMessage('você', speechResult, 'user');
+
+        // Enviar para o servidor via WebSocket
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({
+            type: 'chat',
+            text: speechResult
+          }));
+
+          ws.send(JSON.stringify({
+            type: 'audioRequest'
+          }));
+        }
+      };
+
+      recognition.onend = () => {
+        resetUIAfterSpeech();
+      };
+
+      recognition.onerror = (event) => {
+        console.error('Erro no reconhecimento:', event.error);
+        addMessage('erro', `Erro: ${event.error}`, 'system');
+        resetUIAfterSpeech();
+      };
+    }
+
+    // Gerar fala (TTS)
+    async function generateSpeech(text) {
+      try {
+        avatar.classList.add('speaking');
+
+        const response = await fetch('/api/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text })
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao gerar áudio');
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+
+        if (currentAudio) {
+          currentAudio.pause();
+        }
+
+        currentAudio = new Audio(audioUrl);
+
+        currentAudio.onplay = () => {
+          avatar.classList.add('speaking');
+          showVisualizer();
+        };
+
+        currentAudio.onended = () => {
+          avatar.classList.remove('speaking');
+          hideVisualizer();
+          updateStatus('connected');
+          URL.revokeObjectURL(audioUrl);
+        };
+
+        currentAudio.onerror = () => {
+          avatar.classList.remove('speaking');
+          hideVisualizer();
+          updateStatus('connected');
+        };
+
+        await currentAudio.play();
+
+      } catch (error) {
+        console.error('❌ Erro no TTS:', error);
+        addMessage('erro', 'Erro ao gerar áudio', 'system');
+        avatar.classList.remove('speaking');
+        hideVisualizer();
+        updateStatus('connected');
+      }
+    }
+
+    // Adicionar mensagem ao transcript
+    function addMessage(sender, text, type = 'user') {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${type}`;
+
+      const label = document.createElement('div');
+      label.className = 'message-label';
+      label.textContent = sender;
+
+      const messageText = document.createElement('div');
+      messageText.className = 'message-text';
+      messageText.textContent = text;
+
+      const time = document.createElement('div');
+      time.className = 'message-time';
+      time.textContent = new Date().toLocaleTimeString('pt-BR');
+
+      messageDiv.appendChild(label);
+      messageDiv.appendChild(messageText);
+      messageDiv.appendChild(time);
+
+      transcript.appendChild(messageDiv);
+      transcript.scrollTop = transcript.scrollHeight;
+    }
+
+    // Atualizar status
+    function updateStatus(status) {
+      statusBadge.className = 'status-badge';
+
+      switch(status) {
+        case 'connected':
+          statusBadge.classList.add('status-connected');
+          statusBadge.textContent = '🟢 Conectado';
+          break;
+        case 'disconnected':
+          statusBadge.classList.add('status-disconnected');
+          statusBadge.textContent = '⚫ Desconectado';
+          break;
+        case 'processing':
+          statusBadge.classList.add('status-processing');
+          statusBadge.textContent = '🟡 Processando...';
+          break;
+      }
+    }
+
+    // Resetar UI após fala
+    function resetUIAfterSpeech() {
+      isListening = false;
+      startBtn.style.display = 'inline-block';
+      stopBtn.style.display = 'none';
+      avatar.classList.remove('listening');
+      hideVisualizer();
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        updateStatus('connected');
+      }
+    }
+
+    // Visualizador de áudio
+    function showVisualizer() {
+      visualizer.classList.remove('hidden');
+      animateVisualizer();
+    }
+
+    function hideVisualizer() {
+      visualizer.classList.add('hidden');
+    }
+
+    function animateVisualizer() {
+      const bars = visualizer.querySelectorAll('.bar');
+      setInterval(() => {
+        bars.forEach(bar => {
+          const height = Math.random() * 40 + 10;
+          bar.style.height = height + 'px';
+        });
+      }, 100);
+    }
+
+    // Atualizar última atividade
+    function updateLastActivity() {
+      lastActivity.textContent = new Date().toLocaleTimeString('pt-BR');
+    }
+  </script>
+</body>
+</html>
