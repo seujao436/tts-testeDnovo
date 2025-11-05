@@ -2,6 +2,15 @@
 
 Assistente de voz inteligente com integração avançada de **Gemini AI**, **Eleven Labs TTS** e **WebSocket** para comunicação em tempo real.
 
+## ⚡ Deploy Rápido
+
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/seujao436/tts-testeDnovo)
+
+> **⚠️ Importante**: Durante o deploy, você precisará configurar as variáveis de ambiente:
+> - `GEMINI_API_KEY` - Sua chave da API do Gemini
+> - `ELEVENLABS_API_KEY` - Sua chave da API do Eleven Labs
+> - `PORT` - Porta do servidor (padrão: 3000)
+
 ## 🚀 Funcionalidades
 
 - ✅ **WebSocket em tempo real** para comunicação bidirecional
@@ -15,7 +24,7 @@ Assistente de voz inteligente com integração avançada de **Gemini AI**, **Ele
 
 ## 📋 Pré-requisitos
 
-- Node.js 18+ 
+- Node.js 18+
 - Conta no Google AI (Gemini API)
 - Conta no Eleven Labs
 - Navegador moderno (Chrome, Firefox, Edge)
@@ -48,12 +57,12 @@ PORT=3000
 #### Como obter as chaves:
 
 **Gemini API Key:**
-1. Acesse: https://makersuite.google.com/app/apikey
+1. Acesse: [https://makersuite.google.com/app/apikey](https://makersuite.google.com/app/apikey)
 2. Crie uma nova chave API
 3. Copie e cole no .env
 
 **Eleven Labs API Key:**
-1. Acesse: https://elevenlabs.io
+1. Acesse: [https://elevenlabs.io](https://elevenlabs.io)
 2. Vá em Profile → API Keys
 3. Gere uma nova chave
 4. Copie e cole no .env
@@ -102,7 +111,7 @@ git push -u origin main
 
 ### 2. Configure o Render
 
-1. Acesse https://render.com
+1. Acesse [https://render.com](https://render.com)
 2. Crie um novo **Web Service**
 3. Conecte seu repositório GitHub
 4. Configure:
@@ -210,7 +219,7 @@ Verifica status do servidor
 
 ### Trocar a voz do Eleven Labs
 
-Acesse: https://elevenlabs.io/voice-library
+Acesse: [https://elevenlabs.io/voice-library](https://elevenlabs.io/voice-library)
 
 ```javascript
 // No server.js, altere:
